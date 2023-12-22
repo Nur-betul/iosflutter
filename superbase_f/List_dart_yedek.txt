@@ -1,0 +1,135 @@
+import 'package:flutter/material.dart';
+import 'package:supabase/supabase.dart'; // Import Supabase package
+
+class MedicationPage extends StatefulWidget {
+  @override
+  _MedicationPageState createState() => _MedicationPageState();
+}
+
+class _MedicationPageState extends State<MedicationPage> {
+  final TextEditingController _searchController = TextEditingController();
+  final SupabaseClient client = SupabaseClient(
+    'https://flijeczgyneiuszseojp.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsaWplY3pneW5laXVzenNlb2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA2ODUwMjYsImV4cCI6MjAxNjI2MTAyNn0.t0aYIh_gUJo9_pvF1QcDGOEPswN4ZI9iwFOoxF7OKg0',
+    // Supabase URL ve anahtarınızı buraya ekleyin
+  );
+
+  List<String> drugs = []; // Tüm ilaçların bulunduğu liste
+  List<String> filteredDrugs = []; // Aramaya göre filtrelenmiş ilaç listesi
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Dispose the controller to avoid memory leaks
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDrugs(); // Widget başladığında ilaçları getir
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('İlaç Listesi'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                          labelText: 'Ara',
+                          hintText: 'İlaç adı girin',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder()),
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        filterDrugs(_searchController.text);
+                      },
+                      icon: const Icon(Icons.filter_list))
+                ],
+              )
+              /*TextField(
+              onSubmitted: (value) {
+                filterDrugs(value); // İlaçları filtrele
+              },
+              decoration: const InputDecoration(
+                labelText: 'İlaç Ara',
+                hintText: 'İlaç adını girin',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ), */
+              ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredDrugs.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(filteredDrugs[index]),
+                  onTap: () {
+                    // İlaç seçildiğinde yapılacak işlemler
+                    selectMedication(filteredDrugs[index]);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Supabase'ten tüm ilaçları getiren fonksiyon
+  Future<void> fetchDrugs() async {
+    // ignore: deprecated_member_use
+    final response = await client
+        .from('Medicine')
+        .select('INN, Dosage Form and Strength')
+        .execute();
+    if (response != null) {
+      print('Hata: ');
+      // Hata varsa burada işleyebilirsiniz
+    } else {
+      final List<dynamic>? data = response.data;
+      setState(() {
+        drugs = data!
+            .map((item) => item['INN, Dosage Form and Strength'] as String)
+            .toList();
+        filteredDrugs =
+            List.from(drugs); // Filtrelenmiş ilaçları tüm ilaçlarla başlat
+      });
+    }
+  }
+
+  // İlaçları filtreleyen fonksiyon
+  void filterDrugs(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        // Arama yapılacak bir şey yoksa tüm ilaçları göster
+        filteredDrugs = List.from(drugs);
+      } else {
+        // Arama sorgusuna göre ilaçları filtrele
+        filteredDrugs = drugs
+            .where((drug) => drug.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  // İlaç seçildiğinde yapılacak işlemler
+  void selectMedication(String medication) {
+    // Seçilen ilaçla ilgili işlemler burada yapılabilir
+    print('Seçilen İlaç: $medication');
+    // Örnek olarak, seçilen ilacı bir başka sayfaya aktarabilirsiniz.
+  }
+}

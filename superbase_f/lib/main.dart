@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Supabase Demo',
-      theme: ThemeData(primarySwatch: Colors.blueGrey),
+      theme: ThemeData(scaffoldBackgroundColor: Colors.blueGrey),
       home: LoginPage(client: client),
     );
   }

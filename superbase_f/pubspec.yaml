@@ -39,6 +39,10 @@ dependencies:
   supabase: ^1.11.11
   intl: ^0.18.1
   get_it: ^7.6.4
+  flutter_local_notifications: ^16.3.0
+  uuid: ^4.2.2
+  sqflite: ^2.3.0
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

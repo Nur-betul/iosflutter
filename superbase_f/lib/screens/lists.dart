@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:superbase_f/screens/addmedicine.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MedicationPage extends StatefulWidget {
@@ -12,91 +13,65 @@ class _MedicationPageState extends State<MedicationPage> {
   late Future<List<Map<String, dynamic>>> _future;
   TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
-  List<String> _suggestions = [];
-  String? _selectedDrug;
 
-  @override
-  void initState() {
-    super.initState();
-    _future = fetchData(); // Start fetching data when the widget initializes
-  }
+  final List<Map<String, String>> medications = [
+    {'name': 'ASPIRIN', 'date': '9 Ocak 20.00', 'method': 'oral'},
+    {
+      'name': 'Hametan',
+      'date': '9 Ocak 10.00',
+      'method': 'deri üzerine sürülerek kullanılır'
+    },
+    {'name': 'Bricanyl', 'date': '10 Ocak 11.00', 'method': 'oral'},
+  ];
 
-  Future<List<Map<String, dynamic>>> fetchData() async {
-    final response =
-        await Supabase.instance.client.from('MedNew').select().execute();
+  var mednew;
 
-    return (response.data as List).cast<Map<String, dynamic>>();
-  }
-
-  void filterMedicines(String value) {
-    setState(() {
-      _searchTerm = value.toLowerCase();
-    });
-
-    if (_searchTerm.isEmpty) {
-      setState(() {
-        _suggestions = [];
-      });
-      return;
-    }
-
-    _future.then((medicines) {
-      setState(() {
-        _suggestions = medicines
-            .where((medicine) => medicine['innDosageFormStrength']
-                .toString()
-                .toLowerCase()
-                .contains(_searchTerm))
-            .map((medicine) => medicine['innDosageFormStrength'].toString())
-            .toList();
-      });
-    });
-  }
-
-  void selectDrug(String drugName) {
-    setState(() {
-      _selectedDrug = drugName;
-    });
-    // Do something with the selected drug, e.g., navigate to another page
-    print('Selected drug: $_selectedDrug');
+  List<Widget> _builEventDetails() {
+    return [
+      Text(
+        'Event Name: ${mednew['event_name']}',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      Text('Event Data: ${mednew['event_name']}'),
+      Text('Event Type: ${mednew['event_type']}'),
+      Text('Event Date: ${mednew['event_date']}'),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Search by drug name...',
-            suffixIcon: IconButton(
-              icon: Icon(Icons.search),
+        title: Text('Medication List'),
+      ),
+      body: ListView.builder(
+        itemCount: medications.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(medications[index]['name']!),
+            subtitle: Text(
+                'Date: ${medications[index]['date']!}, Method: ${medications[index]['method']!}'),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
               onPressed: () {
-                filterMedicines(_searchController.text);
+                setState(() {
+                  medications.removeAt(index);
+                });
               },
             ),
-          ),
-          onChanged: (value) {
-            filterMedicines(value);
-          },
-        ),
+          );
+        },
       ),
-      body: _suggestions.isNotEmpty
-          ? ListView.builder(
-              itemCount: _suggestions.length,
-              itemBuilder: (context, index) {
-                final drugName = _suggestions[index];
-                return ListTile(
-                  title: Text(drugName),
-                  onTap: () {
-                    selectDrug(drugName);
-                  },
-                  selected: _selectedDrug == drugName,
-                  selectedTileColor: Colors.blue.withOpacity(0.3),
-                );
-              },
-            )
-          : SizedBox(), // If no search result, show nothing
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddMedicinePage()),
+            );
+          },
+          label: Text('İLAÇ EKLE'),
+          icon: Icon(Icons.add),
+          backgroundColor: Colors.green),
     );
   }
 }
